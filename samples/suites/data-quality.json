@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0",
+  "id": "reservation-quality",
+  "name": "Reservation data quality",
+  "description": "Nine configurable SQL validation templates against fictional reservation/payment fixtures. Some failures are intentional.",
+  "defaults": { "connection": "warehouse", "timeoutSeconds": 120 },
+  "parameters": { "batchId": { "type": "string", "required": true, "default": "B-20261024" } },
+  "tests": [
+    { "id": "required-guest", "name": "Guest name is required", "type": "sqlAssertion", "expect": { "rowCount": 0 }, "template": { "kind": "requiredValues", "source": { "schema": "dbo", "table": "Reservation", "filter": "LoadBatchId = @batchId" }, "columns": ["GuestName"], "checkWhitespace": true } },
+    { "id": "unique-reservation", "name": "Unique reservation business key", "type": "sqlAssertion", "expect": { "rowCount": 0 }, "template": { "kind": "uniqueKeys", "source": { "schema": "dbo", "table": "Reservation", "filter": "LoadBatchId = @batchId" }, "columns": ["PropertyCode", "ReservationId"], "failOnNull": true } },
+    { "id": "allowed-status", "name": "Reservation status values", "type": "sqlAssertion", "expect": { "rowCount": 0 }, "template": { "kind": "allowedValues", "source": { "schema": "dbo", "table": "Reservation", "filter": "LoadBatchId = @batchId" }, "columns": ["Status"], "valueType": "string", "allowedValues": ["Active", "Inactive"], "failOnNull": true } },
+    { "id": "revenue-range", "name": "Revenue within expected range", "type": "sqlAssertion", "expect": { "rowCount": 0 }, "template": { "kind": "numericRange", "source": { "schema": "dbo", "table": "Reservation", "filter": "LoadBatchId = @batchId" }, "columns": ["RevenueAmount"], "minimum": "0", "maximum": "1000000" } },
+    { "id": "modified-window", "name": "Modified date within load window", "type": "sqlAssertion", "expect": { "rowCount": 0 }, "template": { "kind": "dateRange", "source": { "schema": "dbo", "table": "Reservation", "filter": "LoadBatchId = @batchId" }, "columns": ["ModifiedDate"], "minimum": "2026-10-23T00:00:00", "maximum": "2026-10-24T00:00:00", "includeMinimum": true, "includeMaximum": false } },
+    { "id": "guest-length", "name": "Guest name length", "type": "sqlAssertion", "expect": { "rowCount": 0 }, "template": { "kind": "lengthRange", "source": { "schema": "dbo", "table": "Reservation", "filter": "LoadBatchId = @batchId" }, "columns": ["GuestName"], "minimum": "1", "maximum": "100" } },
+    { "id": "payment-parent", "name": "Payments reference reservations", "type": "sqlAssertion", "expect": { "rowCount": 0 }, "template": { "kind": "referentialIntegrity", "source": { "schema": "dbo", "table": "Payment", "filter": "LoadBatchId = @batchId" }, "target": { "schema": "dbo", "table": "Reservation", "filter": "LoadBatchId = @batchId" }, "keys": [{ "source": "PropertyCode", "target": "PropertyCode" }, { "source": "ReservationId", "target": "ReservationId" }], "failOnNull": true } },
+    { "id": "reservation-count", "name": "Reservation count reconciliation", "type": "sqlAssertion", "expect": { "rowCount": 0 }, "template": { "kind": "rowCount", "source": { "schema": "staging", "table": "Reservation", "filter": "BatchId = @batchId" }, "target": { "schema": "dbo", "table": "Reservation", "filter": "LoadBatchId = @batchId" }, "absoluteTolerance": 0 } },
+    { "id": "payment-aggregate", "name": "Payment totals by property", "type": "sqlAssertion", "expect": { "rowCount": 0 }, "template": { "kind": "aggregate", "source": { "schema": "staging", "table": "Payment", "filter": "BatchId = @batchId" }, "target": { "schema": "dbo", "table": "Payment", "filter": "LoadBatchId = @batchId" }, "aggregate": "sum", "sourceMeasure": "Amount", "targetMeasure": "Amount", "keys": [{ "source": "PropertyCode", "target": "PropertyCode" }], "absoluteTolerance": 0.01 } }
+  ]
+}

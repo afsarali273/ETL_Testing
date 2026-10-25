@@ -1,0 +1,4 @@
+{
+  "name":"QA SQL AUTH",
+  "connections":{"warehouse":{"server":"SQL-QA-01","database":"HotelWarehouse","authentication":"sql","userEnvironmentVariable":"ETL_SQL_USER","passwordEnvironmentVariable":"ETL_SQL_PASSWORD","encrypt":true,"trustServerCertificate":false,"connectionTimeoutSeconds":15}}
+}

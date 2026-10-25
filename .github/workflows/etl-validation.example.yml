@@ -1,0 +1,20 @@
+name: ETL validation (example)
+on: workflow_dispatch
+jobs:
+  validate:
+    runs-on: [self-hosted, Windows, X64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run suite
+        shell: pwsh
+        run: dotnet run --project src/EtlTesting.Cli -- run --suite samples/suites/reservations.json --environment samples/environments/qa.json --parameter batchId=B-20261024 --output artifacts/etl-results --formats json,html,csv,junit
+      - name: Publish reports including JUnit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: etl-results
+          path: artifacts/etl-results
+          if-no-files-found: warn

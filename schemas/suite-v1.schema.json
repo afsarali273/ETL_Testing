@@ -1,0 +1,41 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://etltest.local/schemas/suite-v1.schema.json",
+  "title":"ETL Test Studio suite v1",
+  "type":"object","additionalProperties":false,
+  "required":["schemaVersion","id","name","tests"],
+  "properties":{
+    "schemaVersion":{"const":"1.0"},"id":{"$ref":"#/$defs/id"},"name":{"type":"string","minLength":1},"description":{"type":"string"},
+    "tags":{"$ref":"#/$defs/tags"},
+    "defaults":{"type":"object","additionalProperties":false,"properties":{"connection":{"type":"string","minLength":1},"timeoutSeconds":{"type":"integer","minimum":1,"maximum":86400}}},
+    "parameters":{"type":"object","propertyNames":{"pattern":"^[A-Za-z_][A-Za-z0-9_]*$"},"additionalProperties":{"type":"object","additionalProperties":false,"required":["type"],"properties":{"type":{"enum":["string","int64","decimal","boolean","datetime","datetimeoffset","guid"]},"required":{"type":"boolean"},"default":{"type":"string"}}}},
+    "testCases":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","name"],"properties":{"id":{"$ref":"#/$defs/id"},"name":{"type":"string","minLength":1},"description":{"type":"string"},"enabled":{"type":"boolean"}}}},
+    "tests":{"type":"array","minItems":0,"items":{"$ref":"#/$defs/test"}}
+  },
+  "$defs":{
+    "id":{"type":"string","pattern":"^[A-Za-z0-9][A-Za-z0-9_.-]*$"},
+    "tags":{"type":"array","items":{"type":"string"},"uniqueItems":true},
+    "scope":{"type":"object","additionalProperties":false,"required":["schema","table"],"properties":{"schema":{"type":"string","minLength":1},"table":{"type":"string","minLength":1},"connection":{"type":["string","null"]},"filter":{"type":["string","null"]}}},
+    "rule":{"type":"object","additionalProperties":false,"properties":{"trim":{"type":"boolean"},"ignoreCase":{"type":"boolean"},"emptyAsNull":{"type":"boolean"},"absoluteTolerance":{"type":"number","minimum":0},"dateTimeToleranceMilliseconds":{"type":"integer","minimum":0}}},
+    "mapping":{"type":"object","additionalProperties":false,"required":["source","target"],"properties":{"source":{"type":"string","minLength":1},"target":{"type":"string","minLength":1},"comparison":{"$ref":"#/$defs/rule"}}},
+    "cell":{"type":"object","additionalProperties":false,"required":["kind","value"],"properties":{"kind":{"enum":["null","string","decimal","float","datetime","datetimeoffset","boolean","guid","binary"]},"value":{"type":["string","null"]}}},
+    "template":{"type":"object","additionalProperties":false,"required":["kind","source"],"properties":{
+      "kind":{"enum":["requiredValues","uniqueKeys","allowedValues","numericRange","dateRange","lengthRange","referentialIntegrity","rowCount","aggregate"]},
+      "source":{"$ref":"#/$defs/scope"},"target":{"anyOf":[{"$ref":"#/$defs/scope"},{"type":"null"}]},
+      "columns":{"type":"array","uniqueItems":true,"items":{"type":"string","minLength":1}},"keys":{"type":"array","items":{"$ref":"#/$defs/mapping"}},
+      "failOnNull":{"type":"boolean"},"checkWhitespace":{"type":"boolean"},"valueType":{"enum":["string","int64","decimal","boolean","datetime","datetimeoffset","guid"]},
+      "allowedValues":{"type":"array","items":{"type":"string"}},"minimum":{"type":["string","null"]},"maximum":{"type":["string","null"]},
+      "includeMinimum":{"type":"boolean"},"includeMaximum":{"type":"boolean"},"aggregate":{"enum":["sum","count","min","max"]},
+      "sourceMeasure":{"type":["string","null"]},"targetMeasure":{"type":["string","null"]},"absoluteTolerance":{"type":"number","minimum":0},"allowedViolations":{"type":"integer","minimum":0}
+    }},
+    "test":{"type":"object","additionalProperties":false,"required":["id","name","type"],"properties":{
+      "testCaseId":{"type":["string","null"]},"id":{"$ref":"#/$defs/id"},"name":{"type":"string","minLength":1},"type":{"enum":["dataComparison","sqlAssertion"]},"enabled":{"type":"boolean"},"severity":{"enum":["error","warning"]},"connection":{"type":["string","null"]},"tags":{"$ref":"#/$defs/tags"},
+      "source":{"anyOf":[{"$ref":"#/$defs/scope"},{"type":"null"}]},"target":{"anyOf":[{"$ref":"#/$defs/scope"},{"type":"null"}]},
+      "keys":{"type":"array","items":{"$ref":"#/$defs/mapping"}},"columns":{"type":"array","items":{"$ref":"#/$defs/mapping"}},
+      "checks":{"type":"object","additionalProperties":false,"properties":{"uniqueKeys":{"const":true},"missingTargetRows":{"type":"boolean"},"unexpectedTargetRows":{"type":"boolean"}}},
+      "evidenceLimit":{"type":"integer","minimum":0,"maximum":10000},"query":{"type":["string","null"]},
+      "template":{"anyOf":[{"$ref":"#/$defs/template"},{"type":"null"}]},"timeoutSeconds":{"type":["integer","null"],"minimum":1,"maximum":86400},
+      "expect":{"anyOf":[{"type":"null"},{"type":"object","additionalProperties":false,"properties":{"rowCount":{"type":["integer","null"],"minimum":0},"scalar":{"anyOf":[{"$ref":"#/$defs/cell"},{"type":"null"}]}}}]}
+    }}
+  }
+}

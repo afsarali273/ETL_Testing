@@ -1,0 +1,21 @@
+{
+  "schemaVersion":"1.0","id":"reservation-etl","name":"Reservation ETL validation",
+  "description":"Three mapped table pairs in one database plus payment orphan validation. Intentional failure fixtures.",
+  "tags":["smoke"],"defaults":{"connection":"warehouse","timeoutSeconds":120},
+  "parameters":{"batchId":{"type":"string","required":true,"default":"B-20261024"}},
+  "tests":[
+    {"id":"reservation-values","name":"Reservation comparison","type":"dataComparison",
+     "source":{"schema":"staging","table":"Reservation","filter":"BatchId = @batchId"},"target":{"schema":"dbo","table":"Reservation","filter":"LoadBatchId = @batchId"},
+     "keys":[{"source":"PropertyCode","target":"PropertyCode"},{"source":"ReservationId","target":"ReservationId"}],
+     "columns":[{"source":"GuestName","target":"GuestName","comparison":{"trim":true}},{"source":"NetAmount","target":"RevenueAmount","comparison":{"absoluteTolerance":0.01}},{"source":"Status","target":"Status"}],"evidenceLimit":1000},
+    {"id":"customer-values","name":"Customer comparison","type":"dataComparison",
+     "source":{"schema":"staging","table":"Customer","filter":"BatchId = @batchId"},"target":{"schema":"dbo","table":"Customer","filter":"LoadBatchId = @batchId"},
+     "keys":[{"source":"CustomerId","target":"CustomerId"}],"columns":[{"source":"Name","target":"Name","comparison":{"trim":true,"ignoreCase":true}}]},
+    {"id":"payment-values","name":"Payment comparison","type":"dataComparison",
+     "source":{"schema":"staging","table":"Payment","filter":"BatchId = @batchId"},"target":{"schema":"dbo","table":"Payment","filter":"LoadBatchId = @batchId"},
+     "keys":[{"source":"PaymentId","target":"PaymentId"}],"columns":[{"source":"Amount","target":"Amount","comparison":{"absoluteTolerance":0.01}}]},
+    {"id":"payment-reference","name":"Payments must reference reservations","type":"sqlAssertion",
+     "query":"SELECT p.PaymentId, p.ReservationId FROM dbo.Payment p LEFT JOIN dbo.Reservation r ON p.PropertyCode = r.PropertyCode AND p.ReservationId = r.ReservationId WHERE p.LoadBatchId = @batchId AND r.ReservationId IS NULL",
+     "expect":{"rowCount":0}}
+  ]
+}

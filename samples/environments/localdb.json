@@ -1,0 +1,4 @@
+{
+  "name":"LOCAL FIXTURE",
+  "connections":{"warehouse":{"server":"(localdb)\\MSSQLLocalDB","database":"EtlTestStudioSample","authentication":"integrated","encrypt":true,"trustServerCertificate":true,"connectionTimeoutSeconds":15}}
+}

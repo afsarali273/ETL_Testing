@@ -1,0 +1,21 @@
+trigger: none
+pool:
+  name: ETL-Windows-SelfHosted
+steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: sdk
+      version: '10.0.x'
+  - pwsh: dotnet run --project src/EtlTesting.Cli -- run --suite samples/suites/reservations.json --environment samples/environments/qa.json --parameter batchId=B-20261024 --output artifacts/etl-results --formats json,html,csv,junit
+    displayName: Run ETL validations
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: artifacts/etl-results/junit.xml
+      failTaskOnFailedTests: true
+  - task: PublishPipelineArtifact@1
+    condition: always()
+    inputs:
+      targetPath: artifacts/etl-results
+      artifact: etl-results

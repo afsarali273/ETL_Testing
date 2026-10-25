@@ -1,0 +1,4 @@
+{
+  "name":"QA",
+  "connections":{"warehouse":{"server":"SQL-QA-01","database":"HotelWarehouse","authentication":"integrated","encrypt":true,"trustServerCertificate":false,"connectionTimeoutSeconds":15}}
+}

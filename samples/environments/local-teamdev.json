@@ -1,0 +1,13 @@
+{
+  "name": "LOCAL TEAM DEVELOPMENT",
+  "connections": {
+    "warehouse": {
+      "server": "(localdb)\\MSSQLLocalDB",
+      "database": "ETLTeamDev",
+      "authentication": "integrated",
+      "encrypt": true,
+      "trustServerCertificate": true,
+      "connectionTimeoutSeconds": 15
+    }
+  }
+}
